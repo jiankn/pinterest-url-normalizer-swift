@@ -1,0 +1,21 @@
+name: Publish CocoaPods
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: v0.1.0
+      - name: Validate release tag
+        run: pod spec lint PinterestURLNormalizer.podspec --verbose --fail-fast
+      - name: Publish to CocoaPods Trunk
+        env:
+          COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
+        run: pod trunk push PinterestURLNormalizer.podspec --verbose
