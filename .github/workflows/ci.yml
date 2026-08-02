@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  swift:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v5
+      - run: swift --version
+      - run: swift package dump-package > /dev/null
+      - run: swift build -c release
+      - run: swift test
+
+  cocoapods:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v5
+      - run: pod --version
+      - run: pod lib lint PinterestURLNormalizer.podspec --verbose --fail-fast
