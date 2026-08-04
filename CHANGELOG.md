@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- Point CocoaPods metadata and iOS documentation to the dedicated iPhone
+  browser workflow.
+- Clarify that the package normalizes URLs but does not download media.
+
 ## 0.1.0
 
 - Initial release.

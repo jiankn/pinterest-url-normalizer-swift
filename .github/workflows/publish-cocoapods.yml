@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: v0.1.0
+          ref: v0.1.1
       - name: Validate release tag
         run: pod spec lint PinterestURLNormalizer.podspec --verbose --fail-fast
       - name: Publish to CocoaPods Trunk

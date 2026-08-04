@@ -1,12 +1,12 @@
 Pod::Spec.new do |spec|
   spec.name = 'PinterestURLNormalizer'
-  spec.version = '0.1.0'
+  spec.version = '0.1.1'
   spec.summary = 'Parse and normalize Pinterest URLs without network requests.'
   spec.description = <<-DESC
     A zero-dependency Swift library that parses, classifies, and normalizes
     supported Pinterest URLs using an exact hostname allowlist.
   DESC
-  spec.homepage = 'https://savepinner.com/pinterest-downloader/'
+  spec.homepage = 'https://savepinner.com/pinterest-downloader-iphone/'
   spec.license = { :type => 'MIT', :file => 'LICENSE' }
   spec.author = { 'SavePinner' => 'jiankn@users.noreply.github.com' }
   spec.source = {
