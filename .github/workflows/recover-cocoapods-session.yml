@@ -2,6 +2,11 @@ name: Recover CocoaPods Trunk session and publish
 
 on:
   workflow_dispatch:
+    inputs:
+      session_public_key:
+        description: Base64-encoded RSA public key used to encrypt the Trunk session token
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -34,6 +39,34 @@ jobs:
           echo "Timed out waiting for CocoaPods Trunk email verification." >&2
           exit 1
 
+      - name: Encrypt the verified Trunk session token
+        shell: bash
+        env:
+          COCOAPODS_SESSION_PUBLIC_KEY: ${{ inputs.session_public_key }}
+        run: |
+          public_key="${RUNNER_TEMP}/cocoapods-session-public.pem"
+          token_file="${RUNNER_TEMP}/cocoapods-session-token"
+          encrypted_token="${RUNNER_TEMP}/cocoapods-session-token.enc"
+
+          printf '%s' "$COCOAPODS_SESSION_PUBLIC_KEY" | base64 --decode > "$public_key"
+          ruby -rnetrc -e '
+            token = Netrc.read["trunk.cocoapods.org"]&.password
+            abort "CocoaPods Trunk session token was not found." if token.nil? || token.empty?
+            print token
+          ' > "$token_file"
+          chmod 600 "$public_key" "$token_file"
+          openssl pkeyutl -encrypt -pubin -inkey "$public_key" \
+            -in "$token_file" -out "$encrypted_token" \
+            -pkeyopt rsa_padding_mode:oaep
+          rm -f "$public_key" "$token_file"
+
+      - name: Preserve encrypted Trunk session
+        uses: actions/upload-artifact@v7
+        with:
+          name: cocoapods-trunk-session-${{ github.run_id }}
+          path: ${{ runner.temp }}/cocoapods-session-token.enc
+          retention-days: 1
+
       - name: Revoke prior Trunk sessions
         run: pod trunk me clean-sessions --all
 
@@ -45,11 +78,13 @@ jobs:
               exit 0
             fi
 
-            if curl --fail --silent --show-error \
-              https://trunk.cocoapods.org/api/v1/pods/PinterestURLNormalizer \
-              | ruby -rjson -e 'exit(JSON.parse(STDIN.read).fetch("versions").any? { |version| version.fetch("name") == "0.1.1" } ? 0 : 1)'; then
-              echo "PinterestURLNormalizer 0.1.1 is already public."
-              exit 0
+            if package_json="$(curl --fail --silent --show-error \
+              https://trunk.cocoapods.org/api/v1/pods/PinterestURLNormalizer)"; then
+              if printf '%s' "$package_json" \
+                | ruby -rjson -e 'exit(JSON.parse(STDIN.read).fetch("versions").any? { |version| version.fetch("name") == "0.1.1" } ? 0 : 1)'; then
+                echo "PinterestURLNormalizer 0.1.1 is already public."
+                exit 0
+              fi
             fi
 
             if [ "$attempt" -lt 3 ]; then
