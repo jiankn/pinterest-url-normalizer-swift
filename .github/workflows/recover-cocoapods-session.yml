@@ -9,7 +9,7 @@ permissions:
 jobs:
   publish:
     runs-on: macos-15
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v5
@@ -38,4 +38,22 @@ jobs:
         run: pod trunk me clean --all
 
       - name: Publish to CocoaPods Trunk
-        run: pod trunk push PinterestURLNormalizer.podspec
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            if pod trunk push PinterestURLNormalizer.podspec; then
+              exit 0
+            fi
+
+            if curl --fail --silent --show-error \
+              https://trunk.cocoapods.org/api/v1/pods/PinterestURLNormalizer \
+              | ruby -rjson -e 'exit(JSON.parse(STDIN.read).fetch("versions").any? { |version| version.fetch("name") == "0.1.1" } ? 0 : 1)'; then
+              echo "PinterestURLNormalizer 0.1.1 is already public."
+              exit 0
+            fi
+
+            if [ "$attempt" -lt 3 ]; then
+              sleep 30
+            fi
+          done
+          exit 1
