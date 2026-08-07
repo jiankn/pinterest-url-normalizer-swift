@@ -18,4 +18,4 @@ jobs:
       - name: Publish to CocoaPods Trunk
         env:
           COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
-        run: pod trunk push PinterestURLNormalizer.podspec --verbose
+        run: pod trunk push PinterestURLNormalizer.podspec
