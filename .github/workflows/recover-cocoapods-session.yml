@@ -35,7 +35,7 @@ jobs:
           exit 1
 
       - name: Revoke prior Trunk sessions
-        run: pod trunk me clean --all
+        run: pod trunk me clean-sessions --all
 
       - name: Publish to CocoaPods Trunk
         shell: bash
