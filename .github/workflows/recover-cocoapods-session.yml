@@ -1,0 +1,38 @@
+name: Recover CocoaPods Trunk session and publish
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: macos-15
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: v0.1.1
+
+      - name: Register a temporary Trunk session
+        run: >-
+          pod trunk register 'jiankn@gmail.com' 'Jacky Jian'
+          --description='SavePinner GitHub Actions release'
+
+      - name: Wait for email verification
+        shell: bash
+        run: |
+          for attempt in {1..60}; do
+            if pod trunk me >/dev/null 2>&1; then
+              echo "CocoaPods Trunk session verified."
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "Timed out waiting for CocoaPods Trunk email verification." >&2
+          exit 1
+
+      - name: Publish to CocoaPods Trunk
+        run: pod trunk push PinterestURLNormalizer.podspec --verbose
