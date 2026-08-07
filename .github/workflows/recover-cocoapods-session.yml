@@ -35,7 +35,7 @@ jobs:
           exit 1
 
       - name: Revoke prior Trunk sessions
-        run: pod trunk clean --all
+        run: pod trunk me clean --all
 
       - name: Publish to CocoaPods Trunk
         run: pod trunk push PinterestURLNormalizer.podspec
